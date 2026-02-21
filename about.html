@@ -3,60 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard</title>
+    <title>Typing Master - Play</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; }
-        .container { margin-top: 50px; }
-        table { margin: 20px auto; border-collapse: collapse; width: 80%; max-width: 400px; }
-        th, td { border: 1px solid #444; padding: 12px; text-align: center; }
-        th { background: #00ffcc; color: black; }
-        button { padding: 10px 20px; background: #ffcc00; border: none; cursor: pointer; border-radius: 5px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; text-align: center; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .game-card { background: #1e1e1e; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 500px; }
+        h1 { color: #00ffcc; margin-bottom: 10px; }
+        #word-display { font-size: 4rem; font-weight: bold; margin: 20px; color: #ffcc00; text-transform: uppercase; letter-spacing: 10px; min-height: 80px; }
+        input { width: 80%; padding: 15px; font-size: 1.5rem; border: none; border-radius: 10px; outline: none; text-align: center; background: #333; color: white; }
+        .stats { margin-top: 30px; display: flex; justify-content: space-around; font-size: 1.2rem; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10; align-items: center; justify-content: center; }
+        .modal-content { background: #222; padding: 30px; border-radius: 15px; text-align: center; border: 2px solid #00ffcc; }
+        button { background: #00ffcc; color: black; border: none; padding: 12px 25px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🏆 Leaderboard</h1>
-        <table id="leaderboardTable">
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Name</th>
-                    <th>WPM</th>
-                </tr>
-            </thead>
-            <tbody id="leaderboardBody">
-                </tbody>
-        </table>
+
+<div id="signupModal" class="modal" style="display: flex;">
+    <div class="modal-content">
+        <h2>Welcome to Typing Master!</h2>
+        <p>Enter your name to start the challenge:</p>
+        <input type="text" id="userNameInput" placeholder="Your Name" style="font-size: 1rem; width: 200px;">
         <br>
-        <button onclick="location.href='index.html'">Back to Game</button>
-        <button onclick="clearScores()" style="background:red; color:white; margin-left:10px;">Reset Scores</button>
+        <button onclick="saveUser()">Start Game</button>
     </div>
+</div>
 
-    <script>
-        window.onload = function() {
-            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-            let tableBody = document.getElementById('leaderboardBody');
+<div class="game-card">
+    <h1 id="title">Typing Speed Test</h1>
+    <p>Player: <span id="display-name" style="color: #00ffcc;">Guest</span></p>
+    <div id="word-display">START</div>
+    <input type="text" id="input-field" placeholder="Type the letter..." autocomplete="off">
+    <div class="stats">
+        <div>Time: <span id="timer" style="color: #ff4444;">0</span>s</div>
+        <div>WPM: <span id="wpm" style="color: #44ff44;">0</span></div>
+    </div>
+    <button onclick="location.href='about.html'" style="background: #555; color: white; margin-top: 30px;">View Leaderboard</button>
+</div>
 
-            if (leaderboard.length === 0) {
-                tableBody.innerHTML = "<tr><td colspan='3'>No scores yet! Play the game first.</td></tr>";
+<script>
+    let userName = localStorage.getItem('typerName');
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let currentIndex = 0;
+    let startTime = null;
+    let timerInterval = null;
+
+    if (userName) {
+        document.getElementById('signupModal').style.display = 'none';
+        document.getElementById('display-name').innerText = userName;
+    }
+
+    function saveUser() {
+        let name = document.getElementById('userNameInput').value.trim();
+        if (name) {
+            localStorage.setItem('typerName', name);
+            userName = name;
+            document.getElementById('signupModal').style.display = 'none';
+            document.getElementById('display-name').innerText = name;
+            document.getElementById('input-field').focus();
+        }
+    }
+
+    const inputField = document.getElementById('input-field');
+    inputField.addEventListener('input', () => {
+        if (currentIndex === 0 && inputField.value.length === 1) {
+            startTime = new Date();
+            timerInterval = setInterval(() => {
+                let diff = Math.floor((new Date() - startTime) / 1000);
+                document.getElementById('timer').innerText = diff;
+            }, 1000);
+            document.getElementById('word-display').innerText = alphabet[currentIndex];
+        }
+
+        if (inputField.value.toUpperCase() === alphabet[currentIndex]) {
+            currentIndex++;
+            inputField.value = '';
+            if (currentIndex < alphabet.length) {
+                document.getElementById('word-display').innerText = alphabet[currentIndex];
             } else {
-                leaderboard.forEach((entry, index) => {
-                    let row = `<tr>
-                        <td>${index + 1}</td>
-                        <td>${entry.name}</td>
-                        <td>${entry.score}</td>
-                    </tr>`;
-                    tableBody.innerHTML += row;
-                });
-            }
-        };
-
-        function clearScores() {
-            if(confirm("Are you sure you want to reset leaderboard?")) {
-                localStorage.removeItem('leaderboard');
-                location.reload();
+                finishGame();
             }
         }
-    </script>
+    });
+
+    function finishGame() {
+        clearInterval(timerInterval);
+        let totalTime = (new Date() - startTime) / 1000;
+        let wpmResult = Math.round((26 / 5) / (totalTime / 60));
+        alert("Game Finished! Your WPM: " + wpmResult);
+        
+        let scores = JSON.parse(localStorage.getItem('leaderboard')) || [];
+        scores.push({ name: userName, score: wpmResult });
+        scores.sort((a, b) => b.score - a.score);
+        localStorage.setItem('leaderboard', JSON.stringify(scores.slice(0, 5)));
+        
+        window.location.href = "about.html";
+    }
+</script>
 </body>
 </html>

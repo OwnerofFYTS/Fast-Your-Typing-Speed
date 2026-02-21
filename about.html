@@ -3,35 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard</title>
+    <title>Global Leaderboard</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
-        .box { background: #1e1e1e; padding: 30px; border-radius: 15px; display: inline-block; min-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); border: 1px solid #333; }
-        h1 { color: #ffcc00; margin-bottom: 20px; font-size: 28px; }
-        table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
+        .box { background: #1e1e1e; padding: 30px; border-radius: 15px; display: inline-block; min-width: 350px; border: 1px solid #333; }
+        h1 { color: #ffcc00; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
         th, td { padding: 15px; border-bottom: 1px solid #2a2a2a; }
-        th { color: #00ffcc; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
-        td { font-size: 18px; }
-        .btn-container { margin-top: 30px; }
-        .btn { 
-            display: inline-block; 
-            padding: 12px 30px; 
-            background: #00ffcc; 
-            color: #000; 
-            text-decoration: none; 
-            border-radius: 30px; 
-            font-weight: bold; 
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.3);
-        }
-        .btn:hover { background: #00cca3; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0, 255, 204, 0.4); }
+        th { color: #00ffcc; text-transform: uppercase; }
+        .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #00ffcc; color: black; text-decoration: none; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="box">
-        <h1>🏆 Leaderboard</h1>
-        
+        <h1>🏆 Global Leaderboard</h1>
         <table>
             <thead>
                 <tr>
@@ -41,52 +27,48 @@
                 </tr>
             </thead>
             <tbody id="list">
-                </tbody>
+                <tr><td colspan="3">Loading scores...</td></tr>
+            </tbody>
         </table>
-
-        <div class="btn-container">
-            <a href="index.html" class="btn">🔄 Play Again</a>
-        </div>
+        <a href="index.html" class="btn">🔄 Play Again</a>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <script>
-        // Data load karne ka function
-        function loadLeaderboard() {
+        const firebaseConfig = {
+            apiKey: "AIzaSyBCluuEOdQT8qRyNJ-o0WVc1dvrOpx9wzI",
+            authDomain: "fast-your-typing-speed.firebaseapp.com",
+            databaseURL: "https://fast-your-typing-speed-default-rtdb.firebaseio.com",
+            projectId: "fast-your-typing-speed",
+            storageBucket: "fast-your-typing-speed.firebasestorage.app",
+            messagingSenderId: "672179630598",
+            appId: "1:672179630598:web:0e034fae6f2174ef2f8987"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        database.ref('leaderboard').orderByChild('score').limitToLast(10).on('value', (snapshot) => {
             const list = document.getElementById('list');
-            const rawData = localStorage.getItem('leaderboard');
+            list.innerHTML = "";
             let scores = [];
 
-            try {
-                scores = rawData ? JSON.parse(rawData) : [];
-            } catch (e) {
-                console.error("Error parsing leaderboard data", e);
-                scores = [];
-            }
+            snapshot.forEach((childSnapshot) => {
+                scores.push(childSnapshot.val());
+            });
 
-            if (scores.length === 0) {
-                list.innerHTML = "<tr><td colspan='3' style='padding:30px; color:#666;'>No scores available yet!</td></tr>";
-            } else {
-                // Sorting: Zyada WPM upar ayega
-                scores.sort((a, b) => b.score - a.score);
-
-                // Sirf Top 10 dikhane ke liye
-                const topScores = scores.slice(0, 10);
-
-                list.innerHTML = ""; // List clear karke fresh data dalna
-                topScores.forEach((s, i) => {
-                    const row = `<tr>
+            scores.reverse().forEach((s, i) => {
+                list.innerHTML += `
+                    <tr>
                         <td style="color: #ffcc00; font-weight: bold;">#${i + 1}</td>
-                        <td>${s.name || 'Anonymous'}</td>
-                        <td style="color: #00ffcc; font-weight: bold;">${s.score || 0}</td>
+                        <td>${s.name}</td>
+                        <td style="color: #00ffcc; font-weight: bold;">${s.score}</td>
                     </tr>`;
-                    list.innerHTML += row;
-                });
-            }
-        }
-
-        // Page load hote hi function chalao
-        loadLeaderboard();
+            });
+            if(scores.length === 0) list.innerHTML = "<tr><td colspan='3'>No scores yet!</td></tr>";
+        });
     </script>
-
 </body>
 </html>

@@ -50,28 +50,42 @@
     </div>
 
     <script>
-        // LocalStorage se data hasil karna
-        const scores = JSON.parse(localStorage.getItem('leaderboard')) || [];
-        const list = document.getElementById('list');
+        // Data load karne ka function
+        function loadLeaderboard() {
+            const list = document.getElementById('list');
+            const rawData = localStorage.getItem('leaderboard');
+            let scores = [];
 
-        if (scores.length === 0) {
-            list.innerHTML = "<tr><td colspan='3' style='padding:30px; color:#666;'>No scores available yet!</td></tr>";
-        } else {
-            // Scores ko sort karna (Zyada score top par)
-            scores.sort((a, b) => b.score - a.score);
+            try {
+                scores = rawData ? JSON.parse(rawData) : [];
+            } catch (e) {
+                console.error("Error parsing leaderboard data", e);
+                scores = [];
+            }
 
-            // Sirf Top 10 scores dikhane ke liye (Optional)
-            const topScores = scores.slice(0, 10);
+            if (scores.length === 0) {
+                list.innerHTML = "<tr><td colspan='3' style='padding:30px; color:#666;'>No scores available yet!</td></tr>";
+            } else {
+                // Sorting: Zyada WPM upar ayega
+                scores.sort((a, b) => b.score - a.score);
 
-            topScores.forEach((s, i) => {
-                const row = `<tr>
-                    <td style="color: #ffcc00; font-weight: bold;">#${i + 1}</td>
-                    <td>${s.name}</td>
-                    <td style="color: #00ffcc; font-weight: bold;">${s.score}</td>
-                </tr>`;
-                list.innerHTML += row;
-            });
+                // Sirf Top 10 dikhane ke liye
+                const topScores = scores.slice(0, 10);
+
+                list.innerHTML = ""; // List clear karke fresh data dalna
+                topScores.forEach((s, i) => {
+                    const row = `<tr>
+                        <td style="color: #ffcc00; font-weight: bold;">#${i + 1}</td>
+                        <td>${s.name || 'Anonymous'}</td>
+                        <td style="color: #00ffcc; font-weight: bold;">${s.score || 0}</td>
+                    </tr>`;
+                    list.innerHTML += row;
+                });
+            }
         }
+
+        // Page load hote hi function chalao
+        loadLeaderboard();
     </script>
 
 </body>

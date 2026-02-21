@@ -6,17 +6,31 @@
     <title>Leaderboard</title>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
-        .box { background: #1e1e1e; padding: 30px; border-radius: 15px; display: inline-block; min-width: 300px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        h1 { color: #ffcc00; }
-        table { width: 100%; margin-top: 20px; border-spacing: 0; }
+        .box { background: #1e1e1e; padding: 30px; border-radius: 15px; display: inline-block; min-width: 350px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        h1 { color: #ffcc00; margin-bottom: 20px; }
+        table { width: 100%; margin-top: 10px; border-spacing: 0; }
         th, td { padding: 15px; border-bottom: 1px solid #333; }
-        th { color: #00ffcc; }
-        .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #00ffcc; color: black; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        th { color: #00ffcc; text-transform: uppercase; font-size: 14px; }
+        td { font-size: 18px; }
+        .btn-container { margin-top: 30px; }
+        .btn { 
+            display: inline-block; 
+            padding: 12px 25px; 
+            background: #00ffcc; 
+            color: black; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            transition: 0.3s;
+        }
+        .btn:hover { background: #00cca3; transform: scale(1.05); }
     </style>
 </head>
 <body>
+
     <div class="box">
         <h1>🏆 Leaderboard</h1>
+        
         <table>
             <thead>
                 <tr>
@@ -25,22 +39,38 @@
                     <th>WPM</th>
                 </tr>
             </thead>
-            <tbody id="list"></tbody>
+            <tbody id="list">
+                </tbody>
         </table>
-        <a href="index.html" class="btn">Play Again</a>
-        <button onclick="localStorage.clear(); location.reload();" style="background: #ff4444; border:none; padding:10px; color:white; border-radius:5px; cursor:pointer; margin-left:10px;">Reset All</button>
+
+        <div class="btn-container">
+            <a href="index.html" class="btn">🔄 Play Again</a>
+        </div>
     </div>
 
     <script>
+        // LocalStorage se data nikalna
         const scores = JSON.parse(localStorage.getItem('leaderboard')) || [];
         const list = document.getElementById('list');
+
+        // Agar koi score nahi hai
         if (scores.length === 0) {
-            list.innerHTML = "<tr><td colspan='3'>No scores yet!</td></tr>";
+            list.innerHTML = "<tr><td colspan='3' style='padding:20px; color:#888;'>No scores yet! Play a game first.</td></tr>";
         } else {
+            // Scores ko zyada se kam (descending) ki taraf sort karna
+            scores.sort((a, b) => b.score - a.score);
+
+            // Table mein data add karna
             scores.forEach((s, i) => {
-                list.innerHTML += `<tr><td>${i+1}</td><td>${s.name}</td><td>${s.score}</td></tr>`;
+                const row = `<tr>
+                    <td>${i + 1}</td>
+                    <td style="font-weight:bold;">${s.name}</td>
+                    <td style="color:#00ffcc;">${s.score}</td>
+                </tr>`;
+                list.innerHTML += row;
             });
         }
     </script>
+
 </body>
 </html>

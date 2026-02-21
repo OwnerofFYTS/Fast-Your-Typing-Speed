@@ -5,25 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
-        .box { background: #1e1e1e; padding: 30px; border-radius: 15px; display: inline-block; min-width: 350px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        h1 { color: #ffcc00; margin-bottom: 20px; }
-        table { width: 100%; margin-top: 10px; border-spacing: 0; }
-        th, td { padding: 15px; border-bottom: 1px solid #333; }
-        th { color: #00ffcc; text-transform: uppercase; font-size: 14px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
+        .box { background: #1e1e1e; padding: 30px; border-radius: 15px; display: inline-block; min-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); border: 1px solid #333; }
+        h1 { color: #ffcc00; margin-bottom: 20px; font-size: 28px; }
+        table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+        th, td { padding: 15px; border-bottom: 1px solid #2a2a2a; }
+        th { color: #00ffcc; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
         td { font-size: 18px; }
         .btn-container { margin-top: 30px; }
         .btn { 
             display: inline-block; 
-            padding: 12px 25px; 
+            padding: 12px 30px; 
             background: #00ffcc; 
-            color: black; 
+            color: #000; 
             text-decoration: none; 
-            border-radius: 8px; 
+            border-radius: 30px; 
             font-weight: bold; 
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.3);
         }
-        .btn:hover { background: #00cca3; transform: scale(1.05); }
+        .btn:hover { background: #00cca3; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0, 255, 204, 0.4); }
     </style>
 </head>
 <body>
@@ -49,23 +50,24 @@
     </div>
 
     <script>
-        // LocalStorage se data nikalna
+        // LocalStorage se data hasil karna
         const scores = JSON.parse(localStorage.getItem('leaderboard')) || [];
         const list = document.getElementById('list');
 
-        // Agar koi score nahi hai
         if (scores.length === 0) {
-            list.innerHTML = "<tr><td colspan='3' style='padding:20px; color:#888;'>No scores yet! Play a game first.</td></tr>";
+            list.innerHTML = "<tr><td colspan='3' style='padding:30px; color:#666;'>No scores available yet!</td></tr>";
         } else {
-            // Scores ko zyada se kam (descending) ki taraf sort karna
+            // Scores ko sort karna (Zyada score top par)
             scores.sort((a, b) => b.score - a.score);
 
-            // Table mein data add karna
-            scores.forEach((s, i) => {
+            // Sirf Top 10 scores dikhane ke liye (Optional)
+            const topScores = scores.slice(0, 10);
+
+            topScores.forEach((s, i) => {
                 const row = `<tr>
-                    <td>${i + 1}</td>
-                    <td style="font-weight:bold;">${s.name}</td>
-                    <td style="color:#00ffcc;">${s.score}</td>
+                    <td style="color: #ffcc00; font-weight: bold;">#${i + 1}</td>
+                    <td>${s.name}</td>
+                    <td style="color: #00ffcc; font-weight: bold;">${s.score}</td>
                 </tr>`;
                 list.innerHTML += row;
             });

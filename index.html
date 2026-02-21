@@ -1,81 +1,103 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Fast your typing speed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Master - Play</title>
     <style>
-        body { 
-            background-color: black; 
-            font-family: 'Segoe UI', Arial; 
-            color: white; 
-            margin: 0; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center; 
-        }
-        nav { 
-            display: flex; 
-            flex-direction: column; 
-            position: fixed; 
-            left: 20px; 
-            top: 50%; 
-            transform: translateY(-50%);
-            text-align: left; 
-        }
-        nav a { 
-            margin: 10px 0; 
-            color: #ff4757; 
-            text-decoration: none; 
-            font-weight: bold; 
-            font-size: 18px;
-            transition: 0.3s;
-        }
-        nav a:hover { color: white; }
-        
-        .hero h1 { 
-            color: #3498db; 
-            font-size: 60px; 
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .hero p { 
-            color: #2ecc71; 
-            font-size: 24px; 
-            margin-bottom: 30px;
-        }
-        .start-btn {
-            padding: 15px 40px; 
-            font-size: 20px;
-            cursor: pointer; 
-            background: #2ecc71; 
-            color: white; 
-            border: none; 
-            border-radius: 50px;
-            font-weight: bold;
-            transition: 0.3s;
-            text-decoration: none;
-        }
-        .start-btn:hover {
-            background: #27ae60;
-            box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; text-align: center; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .game-card { background: #1e1e1e; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 500px; }
+        h1 { color: #00ffcc; margin-bottom: 10px; }
+        #word-display { font-size: 4rem; font-weight: bold; margin: 20px; color: #ffcc00; text-transform: uppercase; letter-spacing: 10px; min-height: 80px; }
+        input { width: 80%; padding: 15px; font-size: 1.5rem; border: none; border-radius: 10px; outline: none; text-align: center; background: #333; color: white; }
+        .stats { margin-top: 30px; display: flex; justify-content: space-around; font-size: 1.2rem; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10; align-items: center; justify-content: center; }
+        .modal-content { background: #222; padding: 30px; border-radius: 15px; text-align: center; border: 2px solid #00ffcc; }
+        button { background: #00ffcc; color: black; border: none; padding: 12px 25px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="about.html">Typing Practice</a>
-    </nav>
 
-    <div class="hero">
-        <h1>Welcome to Fast Your Speed</h1>
-        <p>Master the keyboard and boost your WPM</p>
+<div id="signupModal" class="modal" style="display: flex;">
+    <div class="modal-content">
+        <h2>Welcome to Typing Master!</h2>
+        <p>Enter your name to start the challenge:</p>
+        <input type="text" id="userNameInput" placeholder="Your Name" style="font-size: 1rem; width: 200px;">
         <br>
-        <a href="about.html" class="start-btn">Get Started</a>
+        <button onclick="saveUser()">Start Game</button>
     </div>
+</div>
+
+<div class="game-card">
+    <h1 id="title">Typing Speed Test</h1>
+    <p>Player: <span id="display-name" style="color: #00ffcc;">Guest</span></p>
+    <div id="word-display">START</div>
+    <input type="text" id="input-field" placeholder="Type the letter..." autocomplete="off">
+    <div class="stats">
+        <div>Time: <span id="timer" style="color: #ff4444;">0</span>s</div>
+        <div>WPM: <span id="wpm" style="color: #44ff44;">0</span></div>
+    </div>
+    <button onclick="location.href='about.html'" style="background: #555; color: white; margin-top: 30px;">View Leaderboard</button>
+</div>
+
+<script>
+    let userName = localStorage.getItem('typerName');
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let currentIndex = 0;
+    let startTime = null;
+    let timerInterval = null;
+
+    if (userName) {
+        document.getElementById('signupModal').style.display = 'none';
+        document.getElementById('display-name').innerText = userName;
+    }
+
+    function saveUser() {
+        let name = document.getElementById('userNameInput').value.trim();
+        if (name) {
+            localStorage.setItem('typerName', name);
+            userName = name;
+            document.getElementById('signupModal').style.display = 'none';
+            document.getElementById('display-name').innerText = name;
+            document.getElementById('input-field').focus();
+        }
+    }
+
+    const inputField = document.getElementById('input-field');
+    inputField.addEventListener('input', () => {
+        if (currentIndex === 0 && inputField.value.length === 1) {
+            startTime = new Date();
+            timerInterval = setInterval(() => {
+                let diff = Math.floor((new Date() - startTime) / 1000);
+                document.getElementById('timer').innerText = diff;
+            }, 1000);
+            document.getElementById('word-display').innerText = alphabet[currentIndex];
+        }
+
+        if (inputField.value.toUpperCase() === alphabet[currentIndex]) {
+            currentIndex++;
+            inputField.value = '';
+            if (currentIndex < alphabet.length) {
+                document.getElementById('word-display').innerText = alphabet[currentIndex];
+            } else {
+                finishGame();
+            }
+        }
+    });
+
+    function finishGame() {
+        clearInterval(timerInterval);
+        let totalTime = (new Date() - startTime) / 1000;
+        let wpmResult = Math.round((26 / 5) / (totalTime / 60));
+        alert("Game Finished! Your WPM: " + wpmResult);
+        
+        let scores = JSON.parse(localStorage.getItem('leaderboard')) || [];
+        scores.push({ name: userName, score: wpmResult });
+        scores.sort((a, b) => b.score - a.score);
+        localStorage.setItem('leaderboard', JSON.stringify(scores.slice(0, 5)));
+        
+        window.location.href = "about.html";
+    }
+</script>
 </body>
 </html>

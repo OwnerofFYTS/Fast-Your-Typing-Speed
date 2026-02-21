@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fast your typing speed - Practice</title>
+    <style>
+        body { background-color: black; font-family: 'Segoe UI', Arial; color: white; margin:0; overflow-x: hidden; }
+        h1 { color: #3498db; margin-left: 20px; }
+        p { color: #2ecc71; margin-left: 20px; font-size: 16px; }
+        nav { display: flex; flex-direction: column; position: fixed; left: 10px; top: 100px; }
+        nav a { margin: 5px 0; color: #ff4757; text-decoration: none; font-weight: bold; }
+
+        .keyboard-container { margin-left: 200px; padding: 20px; }
+        .keyboard-row { display: flex; justify-content: center; margin-bottom: 5px; }
+        .key {
+            width: 40px; height: 40px; border: 2px solid #555; border-radius: 5px;
+            display: flex; justify-content: center; align-items: center;
+            margin: 2px; background-color: #333; font-weight: bold; color: white;
+        }
+        .highlight { border-color: #f39c12; background-color: #444; }
+
+        #game-section { 
+            margin-left: 200px; margin-top: 20px; border: 3px solid #34495e; 
+            width: 700px; height: 450px; background-color: #000; position: relative; 
+            border-radius: 10px;
+        }
+        #game-section:fullscreen { width: 100vw; height: 100vh; margin: 0; border: none; border-radius: 0; }
+        
+        #game-container { width: 100%; height: 100%; position: relative; overflow: hidden; }
+        .falling-key { position: absolute; font-size: 45px; color: #e74c3c; font-weight: 900; text-shadow: 2px 2px #000; }
+        #scoreboard { color: #f1c40f; position: absolute; top: 10px; right: 20px; font-size: 20px; z-index: 10; font-weight: bold; }
+
+        #start-btn { 
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); 
+            padding: 15px 30px; font-size: 20px; cursor: pointer; z-index: 20;
+            background: #27ae60; border: none; color: white; border-radius: 8px; font-weight: bold;
+        }
+
+        #fullscreen-btn { 
+            position: absolute; top: 10px; left: 10px; padding: 8px 15px; 
+            font-size: 13px; cursor: pointer; z-index: 20; background: #2980b9; 
+            border: none; color: white; border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fast your typing speed</h1>
+    <p>Train your fingers to move faster than ever!</p>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">Typing Practice</a>
+    </nav>
+
+    <div class="keyboard-container">
+        <div class="keyboard-row">
+            <div class="key">Q</div><div class="key">W</div><div class="key">E</div><div class="key">R</div><div class="key">T</div>
+            <div class="key">Y</div><div class="key">U</div><div class="key">I</div><div class="key">O</div><div class="key">P</div>
+        </div>
+        <div class="keyboard-row">
+            <div class="key highlight">A</div><div class="key highlight">S</div><div class="key highlight">D</div><div class="key highlight">F</div>
+            <div class="key">G</div><div class="key">H</div><div class="key highlight">J</div><div class="key highlight">K</div>
+            <div class="key highlight">L</div><div class="key highlight">;</div>
+        </div>
+    </div>
+
+    <div id="game-section">
+        <div id="scoreboard">Score: 0 | Lives: 5 | Speed: 1x</div>
+        <button id="fullscreen-btn">🖥️ Fullscreen</button>
+        <button id="start-btn">Start Training</button>
+        <div id="game-container"></div>
+    </div>
+
+<script>
+const startBtn = document.getElementById('start-btn');
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+const gameSection = document.getElementById('game-section');
+const gameContainer = document.getElementById('game-container');
+const scoreboard = document.getElementById('scoreboard');
+
+let fallingKey = null;
+let score = 0;
+let lives = 5;
+let baseSpeed = 2.5; 
+let currentSpeed = 2.5;
+let gameInterval = null;
+const keys = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+function spawnKey(){
+    if(fallingKey) return;
+    const k = document.createElement('div');
+    k.className = 'falling-key';
+    const randomKey = keys[Math.floor(Math.random()*keys.length)];
+    k.textContent = randomKey;
+    k.style.left = Math.random()*(gameContainer.clientWidth - 60) + 10 + 'px';
+    k.style.top = '0px';
+    gameContainer.appendChild(k);
+    fallingKey = {el: k, key: randomKey, top: 0};
+}
+
+function moveKey(){
+    if(!fallingKey){ spawnKey(); return; }
+    fallingKey.top += currentSpeed;
+    fallingKey.el.style.top = fallingKey.top + 'px';
+    
+    if(fallingKey.top > gameContainer.clientHeight - 50){
+        gameContainer.removeChild(fallingKey.el);
+        fallingKey = null;
+        lives--;
+        updateScore();
+        if(lives <= 0){
+            clearInterval(gameInterval);
+            alert('Game Over! Your Final Score: ' + score);
+            resetGame();
+        }
+    }
+}
+
+function updateScore(){ 
+    let speedDisplay = (currentSpeed / 2.5).toFixed(1);
+    scoreboard.textContent = `Score: ${score} | Lives: ${lives} | Speed: ${speedDisplay}x`; 
+}
+
+function resetGame() {
+    score = 0;
+    lives = 5;
+    currentSpeed = baseSpeed;
+    fallingKey = null;
+    gameContainer.innerHTML = '';
+    startBtn.style.display = 'block';
+    updateScore();
+}
+
+startBtn.onclick = () => {
+    startBtn.style.display = 'none';
+    if(gameInterval) clearInterval(gameInterval);
+    gameInterval = setInterval(moveKey, 25);
+    spawnKey();
+};
+
+document.addEventListener('keydown', function(e){
+    let pressedKey = e.key.toUpperCase();
+    if(fallingKey && pressedKey === fallingKey.key){
+        gameContainer.removeChild(fallingKey.el);
+        fallingKey = null;
+        score++;
+        
+        // --- LOGIC: Increase speed by 0.5 every 5 points until 200 ---
+        if(score % 5 === 0 && score <= 200) {
+            currentSpeed += 0.5; 
+        }
+        
+        updateScore();
+        spawnKey();
+    }
+});
+
+fullscreenBtn.onclick = () => {
+    if (!document.fullscreenElement) {
+        gameSection.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+};
+</script>
+</body>
+</html>
